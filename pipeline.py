@@ -21,7 +21,8 @@ def run_Duffing_problem_anomaly_mesure(beta_min=0.10,
                                        total_time=40,
                                        models=['PCA', 'MLPNN', 'RBFNN', 'SFNN', 'WS'],
                                        alphabet_size=8, 
-                                       D=1):
+                                       D=1,
+                                       threshold=0.95):
     """
     Run the different anomaly detection models for the Duffing problem
     Args:
@@ -36,6 +37,7 @@ def run_Duffing_problem_anomaly_mesure(beta_min=0.10,
         models (list): List of models to run.
         alphabet_size (int): The size of the alphabet used to encode the time series into different symbols.
         D (int): The order of the Markov Chain.
+        threshold (float): The cumulative variance threshold for selecting principal components.
     """
     
     # compute beta values for the experiments
@@ -50,7 +52,7 @@ def run_Duffing_problem_anomaly_mesure(beta_min=0.10,
     for model in models:
         
         if model == 'PCA':
-            pca_anomaly_measures = compute_pca_anomaly_scores(segmented_data, nominal_beta=nominal_beta)
+            pca_anomaly_measures = compute_pca_anomaly_scores(segmented_data, nominal_beta=nominal_beta, threshold=threshold)
             anomaly_mesures[model] = pca_anomaly_measures
         
         elif model == 'MLPNN':
