@@ -6,7 +6,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import KMeans
 
 
-def symbolic_false_nearest_neighbors(data, alphabet_size):
+def symbolic_false_nearest_neighbors_2(data, alphabet_size):
     for d in range(2,8):
         kmeans = KMeans(n_clusters=alphabet_size, random_state=42)
         labels = kmeans.fit_predict(data)
@@ -20,7 +20,7 @@ def symbolic_false_nearest_neighbors(data, alphabet_size):
 
 
 
-def symbolic_false_nearest_neighbors_2(data, alphabet_size, d=2):
+def symbolic_false_nearest_neighbors(data, alphabet_size, d=2):
     """Apply SFNN (Symbolic False Nearest Neighbours) for partitioning time series into symbolic sequences.
     parameter to optimize: [alphabet_size*()]"""
     ######
