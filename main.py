@@ -16,6 +16,7 @@ if __name__ == "__main__":
         total_time=40,          # Total duration of the time series in seconds
         models=['PCA', 'MLPNN', 'RBFNN', 'SFNN', 'WS'],  # List of models to run: ['PCA', 'MLPNN', 'RBFNN', 'SFNN', 'WS']
         alphabet_size=8,        # size of alphabet for symbolization
-        D=1                     # order of the Markov Chain
+        D=1,                    # order of the Markov Chain
+        threshold=0.95          # cumulative variance threshold for selecting principal components
     )
     
