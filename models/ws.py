@@ -7,12 +7,13 @@ from models import d_markov_anomaly_measure
 
 
 # Wavelet Space Method with SAX symbolization
-def wavelet_space_partitioning_sax(data, wavelet='db1', level=1, alphabet_size=8):
+def wavelet_space_partitioning_sax(data, wavelet='db1', symbolization='SAX', level=1, alphabet_size=8):
     """
     Partition the data in wavelet space using SAX symbolization.
     Args:
         data: The input time series data.
         wavelet: The type of wavelet to use for decomposition (default: 'db1').
+        symbolization: type of symbolization (linear or SAX)
         level: The level of wavelet decomposition to perform (default: 1).
         alphabet_size: The size of the SAX alphabet (default: 8).
     Returns:
@@ -27,13 +28,22 @@ def wavelet_space_partitioning_sax(data, wavelet='db1', level=1, alphabet_size=8
     # Standardize the coefficients to have zero mean and unit variance
     standardized_coeffs = (flattened_coeffs - np.mean(flattened_coeffs)) / np.std(flattened_coeffs)
 
-    # Generate SAX cuts for the specified alphabet size
-    sax_cuts = cuts_for_asize(alphabet_size)
+    # check the type of symbolization
+    if symbolization=='SAX':
+        # Generate SAX cuts for the specified alphabet size
+        sax_cuts = cuts_for_asize(alphabet_size)
 
-    # Apply SAX symbolization
-    sax_symbols = ts_to_string(standardized_coeffs, sax_cuts)
+        # Apply SAX symbolization
+        sax_symbols = ts_to_string(standardized_coeffs, sax_cuts)
 
-    return np.array([ord(symbol) - ord('a') for symbol in sax_symbols])
+        return np.array([ord(symbol) - ord('a') for symbol in sax_symbols])
+
+    else: # linear
+        #find different bins
+        bins = np.linspace(np.min(standardized_coeffs), np.max(standardized_coeffs)+1e-6, alphabet_size + 1)
+        symbolic_sequence = np.digitize(standardized_coeffs, bins) - 1
+        return symbolic_sequence
+        
 
 
 
@@ -44,7 +54,7 @@ def wavelet_space_partitioning_sax(data, wavelet='db1', level=1, alphabet_size=8
 
 
 
-def compute_ws_anomaly_scores(data_scaled, alphabet_size = 8, D=1, nominal_beta = 0.10):
+def compute_ws_anomaly_scores(data_scaled, alphabet_size = 8, D=1, nominal_beta = 0.10, symbolization='SAX'):
     """
     Calculate the anomaly measure using the D-Markov Machine with Wavelet Space (WS) partitioning.
     Args:
@@ -52,6 +62,7 @@ def compute_ws_anomaly_scores(data_scaled, alphabet_size = 8, D=1, nominal_beta 
         alphabet_size: Size of the symbol alphabet.
         D: Order of the Markov machine.
         nominal_beta: The nominal value of beta to be considered as a reference for the Dugging problem.
+        symbolization: type of symbolization (linear or SAX)
     Returns:
         anomaly_measure: Anomaly measure based on stationary probability vector.
     """
@@ -61,8 +72,8 @@ def compute_ws_anomaly_scores(data_scaled, alphabet_size = 8, D=1, nominal_beta 
     for beta, data in data_scaled.items():
 
         # WS Symbolization
-        symbolic_ws = wavelet_space_partitioning_sax(data, wavelet='db1', alphabet_size=alphabet_size)
-        nominal_ws = wavelet_space_partitioning_sax(data_scaled[nominal_beta], wavelet='db1', alphabet_size=alphabet_size)
+        symbolic_ws = wavelet_space_partitioning_sax(data, wavelet='db1', symbolization=symbolization, alphabet_size=alphabet_size)
+        nominal_ws = wavelet_space_partitioning_sax(data_scaled[nominal_beta], wavelet='db1', symbolization=symbolization, alphabet_size=alphabet_size)
 
         # WS D-Markov Anomaly Measure
         ws_anomaly_measures[beta] = d_markov_anomaly_measure(symbolic_ws, nominal_ws, alphabet_size, D)

@@ -1,146 +1,16 @@
 import numpy as np
 from models import d_markov_anomaly_measure
-from scipy.spatial.distance import cdist
-from scipy.optimize import differential_evolution
-from sklearn.neighbors import NearestNeighbors
-from sklearn.cluster import KMeans
-
-
-def symbolic_false_nearest_neighbors_2(data, alphabet_size):
-    for d in range(2,8):
-        kmeans = KMeans(n_clusters=alphabet_size, random_state=42)
-        labels = kmeans.fit_predict(data)
-        centers = kmeans.cluster_centers_
-        nbrs = NearestNeighbors(n_neighbors=2).fit(data)
-        distances, indices = nbrs.kneighbors(data)
-        false_neighbor = np.count_nonzero(labels == labels[indices[:,1]])
-        false_neighbor /= len(labels)
-
-    return labels
 
 
 
-def symbolic_false_nearest_neighbors(data, alphabet_size, d=2):
-    """Apply SFNN (Symbolic False Nearest Neighbours) for partitioning time series into symbolic sequences.
-    parameter to optimize: [alphabet_size*()]"""
+def symbolic_false_nearest_neighbors(data, alphabet_size):
+    """Apply SFNN (Symbolic False Nearest Neighbours) for partitioning time series into symbolic sequences."""
     ######
     ###### TODO : implement this function
     ######
-    num_centers = alphabet_size
-    delay = 50
-
-    # Setting bounds
-    min_value, max_value = np.min(data), np.max(data)
-    bound = []
-    for i in range(num_centers):
-        for _ in range(d):
-            bound.append((min_value, max_value)) # Centers
-        bound.append((0.1,1)) # Sigma
-
-    # Optimization
-    embedded = time_delay_embedding(data, delay, d)
-    result = differential_evolution(objective_function, bound, args=(embedded, d, delay), 
-                                    disp=True,
-                                    maxiter=10,
-
-                                    workers=-1,
-                                    updating='deferred',
-                                    polish=False)
-
-
-    # Fetch Result
-    optimize_centers = np.zeros((num_centers, d))
-    optimize_sigma = np.zeros(num_centers)
-    optimize_delay = result.x[-1]
-    for i in range(num_centers):
-        for j in range(d):
-            optimize_centers[i,j] = result.x[i*(d+1)+j]
-        optimize_sigma[i] = result.x[i*(d+1)+d]
-
-    # Sort centers and sigmas based on the sum of their coordinates (x + y + z)
-    centers_sum = np.sum(optimize_centers, axis=1)
-    sorted_indices = np.argsort(centers_sum)
-    optimize_centers = optimize_centers[sorted_indices]
-    optimize_sigma = optimize_sigma[sorted_indices]
-    
-    # Compute label
-    optimize_delay = int(optimize_delay)
-    rbf_values = rbf_function(embedded, optimize_centers, optimize_sigma)
-    label = np.argmax(rbf_values, axis=1)
-    return label
-
-
-def time_delay_embedding(series, delay, dim):
-    """Reconstruct the phase space using time delay embedding.
-    Args:
-        series (np.ndarray): Time series data.
-        delay (int): Time delay for embedding.
-        dim (int): Embedding dimension.
-    Returns:
-        np.ndarray: Reconstructed phase space with the given embedding.
-    """
-    n = len(series)
-    delay = int(delay)
-    embedded = np.zeros((n - (dim - 1) * delay, dim))
-    for i in range(dim):
-        embedded[:, i] = series[i * delay:n - (dim - 1 - i) * delay]
-    return embedded
-
-
-def rbf_function(x, centers, sigma):
-    """Return the RBF distance of x from centers"""
-    distances = cdist(x, centers, 'euclidean')
-    return np.exp(-(distances / sigma) ** 2)
-
-def compute_false_nearest_neighbors(embedded, centers, sigma):
-    """Compute the proportion of false nearest neighbors according to a RBF distance
-    Args:
-        embedded: state space series
-        labels: symbol affected by the differential evolution algorithm
-        centers: 
-        """
-    # Partition according RBF
-    rbf_values = rbf_function(embedded, centers, sigma)
-    label = np.argmax(rbf_values, axis=1)
-
-    # Find the Nearest Neighbors
-    nbrs = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(embedded)
-    _, indices = nbrs.kneighbors(embedded) #
-    
-    # Count how many closest Neighbors haven't the same label
-    false_neigh_count = np.sum(label != label[indices[:,1]])
-    return false_neigh_count / len(label)
-
-
-def objective_function(params, embedded, d, delay):
-    """Objective function for the differential evolution algorithm
-    Args:
-        params: centers, sigmas concatenated for the algorithm
-        data: series
-    Returns:
-        """
-    num_centers = (len(params) - 1) // (d + 1)
-    centers = np.zeros((num_centers, d))
-    sigma = np.zeros(num_centers)
-    for i in range(num_centers):
-        for j in range(d):
-            centers[i,j] = params[i*(d+1)+j]
-        sigma[i] = params[i*(d+1)+d]
-    false_neigh_count = compute_false_nearest_neighbors(embedded, centers, sigma)
-
-    # Regularisation
-    penalty = 0
-    for i in range(num_centers):
-        for j in range(i + 1, num_centers):
-            dist = np.linalg.norm(centers[i] - centers[j])
-            penalty += 1e-3 / (dist + 1e-6) 
-    
-    return false_neigh_count + penalty
-
-
-
-
-
+    bins = np.linspace(np.min(data), np.max(data)+1e-6, alphabet_size + 1)
+    symbolic_sequence = np.digitize(data, bins, right=True) - 1
+    return symbolic_sequence
 
 
 
@@ -158,18 +28,14 @@ def compute_sfnn_anomaly_scores(data_scaled, alphabet_size = 8, D=1, nominal_bet
     """
     
     sfnn_anomaly_measures = {}
-    nominal_sfnn = symbolic_false_nearest_neighbors(data_scaled[nominal_beta], alphabet_size=alphabet_size)
-
     for beta, data in data_scaled.items():
         
         # SFNN Symbolization
-        symbolic_sfnn = symbolic_false_nearest_neighbors(data, alphabet_size=alphabet_size) 
-        if beta==0.1:
-            symbolic_sfnn = nominal_sfnn
-
+        symbolic_sfnn = symbolic_false_nearest_neighbors(data, alphabet_size=alphabet_size)
+        nominal_sfnn = symbolic_false_nearest_neighbors(data_scaled[nominal_beta], alphabet_size=alphabet_size)
         # SFNN D-Markov Anomaly Measure
         sfnn_anomaly_measures[beta] = d_markov_anomaly_measure(symbolic_sfnn, nominal_sfnn, alphabet_size, D)
-
+        
     # Normalize SFNN measures
     sfnn_anomaly_measures = {beta: value - sfnn_anomaly_measures[0.10] for beta, value in sfnn_anomaly_measures.items()}
     max_sfnn = max(sfnn_anomaly_measures.values())
