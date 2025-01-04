@@ -6,10 +6,10 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import KMeans
 
 
-def symbolic_false_nearest_neighbors(data, alphabet_size, centers=None, delay=5):
+def symbolic_false_nearest_neighbors(data, alphabet_size, centers=None, delay=18):
     # Compute the embedded with dimension d
     if centers is None: # Compute the centroid
-        for dim in range(4,8):
+        for dim in range(2,8):
             # Compute the embedded with dimension d
             n = len(data)
             
@@ -41,7 +41,7 @@ def symbolic_false_nearest_neighbors(data, alphabet_size, centers=None, delay=5)
 
 
 
-def symbolic_false_nearest_neighbors_2(data, alphabet_size, d=3, centers=None, delay=2):
+def symbolic_false_nearest_neighbors_2(data, alphabet_size, d=3, centers=None, delay=18):
     """Apply SFNN (Symbolic False Nearest Neighbours) for partitioning time series into symbolic sequences.
     parameter to optimize: [alphabet_size*()]"""
     ######
@@ -174,7 +174,7 @@ def objective_function(params, embedded, d, delay):
 
 
 
-def compute_sfnn_anomaly_scores(data_scaled, alphabet_size = 8, D=1, nominal_beta = 0.10):
+def compute_sfnn_anomaly_scores(data_scaled, alphabet_size = 8, D=1, nominal_beta = 0.10, delay=18):
     """
     Calculate the anomaly measure using the D-Markov Machine with Symbolic False Nearest Neighbours (SFNN).
     Args:
@@ -187,12 +187,12 @@ def compute_sfnn_anomaly_scores(data_scaled, alphabet_size = 8, D=1, nominal_bet
     """
 
     sfnn_anomaly_measures = {}
-    nominal_sfnn, centers = symbolic_false_nearest_neighbors(data_scaled[nominal_beta], alphabet_size=alphabet_size)
+    nominal_sfnn, centers = symbolic_false_nearest_neighbors(data_scaled[nominal_beta], alphabet_size=alphabet_size, delay=delay)
 
     for beta, data in data_scaled.items():
 
         # SFNN Symbolization
-        symbolic_sfnn, _ = symbolic_false_nearest_neighbors(data, alphabet_size=alphabet_size, centers = centers)
+        symbolic_sfnn, _ = symbolic_false_nearest_neighbors(data, alphabet_size=alphabet_size, centers = centers, delay=delay)
         if beta==0.1:
             symbolic_sfnn = nominal_sfnn
 

@@ -7,7 +7,8 @@ from models import (compute_mlpnn_anomaly_scores,
                     compute_ws_anomaly_scores)
 from plot.plots import (plot_models, 
                         plot_symbolization_comparison_WS, 
-                        plot_Markov_order_comparison_for_WS)
+                        plot_Markov_order_comparison_for_WS,
+                        plot_delay_influence)
 
 
 
@@ -175,3 +176,31 @@ def run_Markov_order_comparison_for_WS(beta_min=0.10,
     
     # generate the plot of the anomaly measures for the different symbolization techniques
     plot_Markov_order_comparison_for_WS(anomaly_mesures)
+
+
+
+def delay_influence(beta_min=0.10, 
+                    beta_max=0.35,
+                    num_beta=20,
+                    nominal_beta=0.10,
+                    A=22.0, 
+                    omega=5.0, 
+                    sampling_rate=100,
+                    total_time=40,
+                    alphabet_size=8):
+
+
+    # compute beta values for the experiments
+    beta_values = np.linspace(beta_min, beta_max, num_beta)
+    
+    # generate and preprocess time series based on Duffing problem
+    data_scaled, _ = preprocess_time_series(beta_values, A, omega, sampling_rate, total_time)
+
+    anomaly_mesures={}
+
+    delays = [8, 12, 18, 21, 30]
+    for delay in delays:
+        sfnn_anomaly_measures = compute_sfnn_anomaly_scores(data_scaled, alphabet_size=alphabet_size, D=1, nominal_beta=nominal_beta, delay=delay)
+        anomaly_mesures[delay] = sfnn_anomaly_measures
+    
+    plot_delay_influence(anomaly_mesures)

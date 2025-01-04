@@ -1,6 +1,7 @@
 from pipeline import (run_Duffing_problem_anomaly_mesure,
                       run_Symbolization_comparison_for_WS,
-                      run_Markov_order_comparison_for_WS)
+                      run_Markov_order_comparison_for_WS,
+                      delay_influence)
 
 
 
@@ -51,3 +52,13 @@ if __name__ == "__main__":
     #    D_values=[1,2,3,4,5],       # The list of orders of the Markov Chain
     #    symbolization='SAX'     # type of symbolization (linear or SAX)
     #)
+
+    # delay_influence(beta_min=0.10, 
+    #                 beta_max=0.35,
+    #                 num_beta=20,
+    #                 nominal_beta=0.10,
+    #                 A=22.0, 
+    #                 omega=5.0, 
+    #                 sampling_rate=100,
+    #                 total_time=40,
+    #                 alphabet_size=8)
