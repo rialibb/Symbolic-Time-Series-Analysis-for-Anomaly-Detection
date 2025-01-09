@@ -179,7 +179,14 @@ def run_Markov_order_comparison_for_WS(beta_min=0.10,
 
 
 
-def delay_influence(beta_min=0.10, 
+
+
+
+
+
+
+
+def run_delay_influence(beta_min=0.10, 
                     beta_max=0.35,
                     num_beta=20,
                     nominal_beta=0.10,
@@ -188,7 +195,19 @@ def delay_influence(beta_min=0.10,
                     sampling_rate=100,
                     total_time=40,
                     alphabet_size=8):
-
+    """
+    Run a comparison between different delays for the SFNN model for the Duffing problem.
+    Args:
+        beta_min (float): The minimum value of beta.
+        beta_max (float): The maximum value of beta.
+        num_beta (float): The number of beta values to test between beta_min and beta_max.
+        nominal_beta (float): The reference value of beta to consider as normal data.
+        A (float): The Driving amplitude of the stimulus.
+        omega (float): The driving frequency of the stimulus.
+        sampling_rate (float): The sampling rate of the data.
+        total_time (float): Total duration of the time series in seconds.
+        alphabet_size (int): The size of the alphabet used to encode the time series into different symbols.
+    """
 
     # compute beta values for the experiments
     beta_values = np.linspace(beta_min, beta_max, num_beta)

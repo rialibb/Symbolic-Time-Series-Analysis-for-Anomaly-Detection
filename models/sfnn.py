@@ -44,9 +44,7 @@ def symbolic_false_nearest_neighbors(data, alphabet_size, centers=None, delay=18
 def symbolic_false_nearest_neighbors_2(data, alphabet_size, d=3, centers=None, delay=18):
     """Apply SFNN (Symbolic False Nearest Neighbours) for partitioning time series into symbolic sequences.
     parameter to optimize: [alphabet_size*()]"""
-    ######
-    ###### TODO : implement this function
-    ######
+
     if centers is None:
         num_centers = alphabet_size
 

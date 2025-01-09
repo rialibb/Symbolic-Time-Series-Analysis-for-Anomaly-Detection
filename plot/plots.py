@@ -79,6 +79,12 @@ def plot_Markov_order_comparison_for_WS(anomaly_mesures):
     plt.savefig('plot/Markov_orders_comparison_plot.png', dpi=300, bbox_inches='tight')
 
 
+
+
+
+
+
+
 def plot_delay_influence(anomaly_mesures):
     """
     Plots the evolution of the anomaly measures over beta values for different models.
