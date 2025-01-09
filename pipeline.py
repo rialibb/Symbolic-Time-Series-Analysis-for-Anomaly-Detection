@@ -7,7 +7,8 @@ from models import (compute_mlpnn_anomaly_scores,
                     compute_ws_anomaly_scores)
 from plot.plots import (plot_models, 
                         plot_symbolization_comparison_WS, 
-                        plot_Markov_order_comparison_for_WS)
+                        plot_Markov_order_comparison_for_WS,
+                        plot_delay_influence)
 
 
 
@@ -175,3 +176,50 @@ def run_Markov_order_comparison_for_WS(beta_min=0.10,
     
     # generate the plot of the anomaly measures for the different symbolization techniques
     plot_Markov_order_comparison_for_WS(anomaly_mesures)
+
+
+
+
+
+
+
+
+
+
+def run_delay_influence(beta_min=0.10, 
+                    beta_max=0.35,
+                    num_beta=20,
+                    nominal_beta=0.10,
+                    A=22.0, 
+                    omega=5.0, 
+                    sampling_rate=100,
+                    total_time=40,
+                    alphabet_size=8):
+    """
+    Run a comparison between different delays for the SFNN model for the Duffing problem.
+    Args:
+        beta_min (float): The minimum value of beta.
+        beta_max (float): The maximum value of beta.
+        num_beta (float): The number of beta values to test between beta_min and beta_max.
+        nominal_beta (float): The reference value of beta to consider as normal data.
+        A (float): The Driving amplitude of the stimulus.
+        omega (float): The driving frequency of the stimulus.
+        sampling_rate (float): The sampling rate of the data.
+        total_time (float): Total duration of the time series in seconds.
+        alphabet_size (int): The size of the alphabet used to encode the time series into different symbols.
+    """
+
+    # compute beta values for the experiments
+    beta_values = np.linspace(beta_min, beta_max, num_beta)
+    
+    # generate and preprocess time series based on Duffing problem
+    data_scaled, _ = preprocess_time_series(beta_values, A, omega, sampling_rate, total_time)
+
+    anomaly_mesures={}
+
+    delays = [8, 12, 18, 21, 30]
+    for delay in delays:
+        sfnn_anomaly_measures = compute_sfnn_anomaly_scores(data_scaled, alphabet_size=alphabet_size, D=1, nominal_beta=nominal_beta, delay=delay)
+        anomaly_mesures[delay] = sfnn_anomaly_measures
+    
+    plot_delay_influence(anomaly_mesures)

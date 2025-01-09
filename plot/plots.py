@@ -77,3 +77,31 @@ def plot_Markov_order_comparison_for_WS(anomaly_mesures):
     plt.grid()
     plt.legend()
     plt.savefig('plot/Markov_orders_comparison_plot.png', dpi=300, bbox_inches='tight')
+
+
+
+
+
+
+
+
+def plot_delay_influence(anomaly_mesures):
+    """
+    Plots the evolution of the anomaly measures over beta values for different models.
+    Args:
+        anomaly_mesures(dict): Dictionary containing the anomaly measures for each model.
+    """
+    
+    # Plot all anomaly measures
+    plt.figure(figsize=(12, 8))
+    color = ['#ad0100', '#f60002', '#f74d4d', '#f79b9c', '#f6eaea']
+    
+    for i, (name, mesure) in enumerate(anomaly_mesures.items()):
+        plt.plot(list(mesure.keys()), list(mesure.values()), marker='x', label=name, color=color[i])
+    
+    plt.xlabel('Delay values')
+    plt.ylabel('Normalized Anomaly Measure')
+    plt.title('Influence of delay in SFNN method')
+    plt.grid()
+    plt.legend()
+    plt.savefig('plot/delay_influence.png', dpi=300, bbox_inches='tight')
